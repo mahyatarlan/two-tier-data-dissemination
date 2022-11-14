@@ -1,0 +1,29 @@
+function way=discovery(p,so,s,a)
+    n=length(s);
+    temp=p;
+    k=1;
+    while temp~=so
+         dists=sqrt((s(temp).x-s(so).x).^2+(s(temp).y-s(so).y).^2);
+        for i=1:n
+            dist(i)=sqrt((s(temp).x-s(i).x).^2+(s(temp).y-s(i).y).^2);
+        end
+        s1=[];q1=[];
+        [s1,q1]=sort(dist);
+        for i=1:length(s1)
+            if s(q1(1)).type=='s'
+                temp=so;
+                way(k)=so;
+                break
+            end    
+            if s1(i)<=a && (isequal(s(q1(i)).type,'DN') || isequal(s(q1(i)).type,'s'))
+                    tempdis=sqrt((s(q1(i)).x-s(so).x).^2+(s(q1(i)).y-s(so).y).^2);
+                    if tempdis<dists
+                        way(k)=q1(i);
+                        temp=way(k);
+%                         plot(s(q1(i)).x,s(q1(i)).y,'s','markerfacecolor','k')
+                        k=k+1;
+                        break
+                    end
+            end
+        end
+    end
