@@ -1,0 +1,90 @@
+function [ws,out]=sinklabelwaypoint(sinkx,sinky,s,a,so,xy)
+ETX=50*0.000000001;
+ERX=50*0.000000001;
+Efs=10*0.000000000001;
+Emp=0.0013*0.000000000001;
+do=sqrt(Efs/Emp);
+    n=length(s);
+    figure(1)
+    hold on
+    plot(sinkx,sinky,'*','markeredgecolor','r','markersize',12)
+
+    for i=1:n
+        distsink(i)=sqrt((sinkx-s(i).x).^2+(sinky-s(i).y).^2);
+    end
+    [s3,q3]=sort(distsink);
+    for i=1:length(s3)
+        if s(q3(i)).type=='n'
+            s(q3(i)).type='IA';
+            plot(s(q3(i)).x,s(q3(i)).y,'o','markerfacecolor','y')
+            IA=q3(i);
+            break
+        end
+    end
+    plot([sinkx s(q3(i)).x],[sinky s(q3(i)).y],'k')
+    hold on
+    way=discovery(IA,so,s,a);
+    way=[IA way];
+    
+    for i=way(1:end-1)
+        dise=sqrt((s(i).x-s(i+1).x).^2+(s(i).y-s(i+1).y).^2);
+                if dise>do
+                    s(i).E=s(i).E-((ETX)*(4000) + Emp*4000*( dise.^4));
+                    s(i+1).E=s(i+1).E-ERX*400;
+                else
+                    s(i).E=s(i).E-((ETX)*(4000) + Emp*4000*( dise.^2));
+                    s(i+1).E=s(i+1).E-ERX*400;
+                end
+    end
+    s(IA).E=s(IA).E-ERX*400;
+    
+    k=1;
+    for i=way
+        xxd(k)=s(i).x;
+        yyd(k)=s(i).y;
+        k=k+1;
+    end
+    plot(xxd,yyd,'r')
+
+    out=waypoint(sinkx,sinky,xy);
+    sinknx=out{3}(1);
+    sinkny=out{3}(2);
+    
+%     pause
+figure(1)
+hold on
+    plot(sinkx,sinky,'*','markeredgecolor','w','markersize',12)
+    plot([sinkx s(IA).x],[sinky s(IA).y],'w')
+    plot(sinknx,sinkny,'*','markeredgecolor','r','markersize',12)
+
+    PA=IA;
+    s(IA).type='PA';
+    plot(s(IA).x,s(IA).y,'o','markerfacecolor','k')
+
+    for i=1:n
+        distsink(i)=sqrt((sinknx-s(i).x).^2+(sinkny-s(i).y).^2);
+    end
+    [s3,q3]=sort(distsink);
+    for i=1:length(s3)
+        if s(q3(i)).type=='n'
+            s(q3(i)).type='IA';
+            plot(s(q3(i)).x,s(q3(i)).y,'o','markerfacecolor','y')
+            IA=q3(i);
+            break
+        end
+    end
+    plot([sinknx s(q3(i)).x],[sinkny s(q3(i)).y],'k')
+    plot([s(q3(i)).x s(PA).x],[s(q3(i)).y s(PA).y],'r')
+
+s(IA).E=s(IA).E-ERX*400;
+s(PA).E=s(PA).E-ERX*400;
+ dise=sqrt((s(PA).x-s(IA).x).^2+(s(PA).y-s(IA).y).^2);
+                if dise>do
+                    s(IA).E=s(IA).E-((ETX)*(4000) + Emp*4000*( dise.^4));
+              
+                else
+                    s(IA).E=s(IA).E-((ETX)*(4000) + Emp*4000*( dise.^2));
+  
+                end
+                ws=s;
+end
