@@ -1,0 +1,153 @@
+clc
+clear
+close all
+xy=input('Enter the xy [x,y]:');
+a=input('Enter the alpha:');
+n=input('Enter the number of node:');
+E0=input('Enter the initial energy:');
+
+% h1=input('Enter the number of sink:');
+
+ETX=50*0.000000001;
+ERX=50*0.000000001;
+Efs=10*0.000000000001;
+Emp=0.0013*0.000000000001;
+do=sqrt(Efs/Emp);
+
+for i=1:n
+    s(i).x=(xy(1)*rand(1));
+    s(i).y=(xy(2)*rand(1));
+    s(i).type='n';
+    s(i).E=E0;
+    xd(i)=s(i).x;
+    yd(i)=s(i).y;
+    disp(i)
+end
+clc
+plot(xd,yd,'ok')
+hold on
+source=[xy(1)*rand(1) 0.1];
+for i=1:n
+    distance(i)=sqrt((s(i).x-source(1)).^2+(s(i).y-source(2)).^2);
+end
+ind=find(distance<=a/2);
+
+sourcenode=[s(ind(1)).x,s(ind(1)).y];
+s(ind(1)).type='s';
+so=ind(1);
+plot(s(ind(1)).x,s(ind(1)).y,'o','markerfacecolor','g')
+
+        dise=sqrt((source(1)-s(so).x).^2+(source(2)-s(so).y).^2);
+        if dise>do
+            s(so).E=s(so).E-((ETX)*(4000) + Emp*4000*( dise.^4));
+            s(so).E=s(so).E-ERX*4000;
+        else
+            s(so).E=s(so).E-((ETX)*(4000) + Emp*4000*( dise.^2));
+            s(so).E=s(so).E-ERX*4000;
+        end
+
+temp=sourcenode(1);
+pointx1=[];
+while temp<=xy(1)
+    pointx1=[pointx1 temp];
+    temp=temp+a;
+end
+
+temp=sourcenode(1)-a;
+pointx2=[];
+while temp>=0
+    pointx2=[pointx2 temp];
+    temp=temp-a;
+end
+pointx=[pointx2 pointx1];
+for i=1:length(pointx)
+    plot([pointx(i) pointx(i)],[0 xy(2)],'k')
+    hold on
+end
+
+temp=sourcenode(2);
+pointy1=[];
+while temp<=xy(2)
+    pointy1=[pointy1 temp];
+    temp=temp+a;
+end
+
+temp=sourcenode(2)-a;
+pointy2=[];
+while temp>=0
+    pointy2=[pointy2 temp];
+    temp=temp-a;
+end
+pointy=[pointy2 pointy1];
+for i=1:length(pointy)
+    plot([0 xy(1)],[pointy(i) pointy(i)],'k')
+    hold on
+end
+    
+for i=pointx
+    for j=pointy
+        point=[i j];
+        for k=1:n
+            dist(k)=sqrt((i-s(k).x).^2+(j-s(k).y).^2);
+        end
+        [s2,q2]=sort(dist);
+%         if s2(1)~=0
+            s(q2(1)).type='DN';s(q2(2)).type='DN';s(q2(3)).type='DN';s(q2(4)).type='DN';
+            plot(xd(q2(1:4)),yd(q2(1:4)),'o','markerfacecolor','b')
+            hold on
+            
+            for z=1:3
+                dise=sqrt((i-s(q2(z)).x).^2+(j-s(q2(z)).y).^2);
+                if dise>do
+                    s(q2(z)).E=s(q2(z)).E-((ETX)*(4000) + Emp*4000*( dise.^4));
+                    s(q2(z)).E=s(q2(z)).E-ERX*400;
+                else
+                    s(q2(z)).E=s(q2(z)).E-((ETX)*(4000) + Emp*4000*( dise.^2));
+                    s(q2(z)).E=s(q2(z)).E-ERX*400;
+                end
+            end
+                
+%         end
+            
+    end
+end
+k=1;
+for h1=[1 2 4 6 8]
+    ss=[];
+    ss=s;
+    disp(h1)
+    for i=1:h1
+        sinkx=xy(1)/2;
+        sinky=xy(2)/2;
+        tic
+        ss=sinklabelwaypoint(sinkx,sinky,ss,a,so,xy);
+        ww(i)=toc;
+%         clc
+%         disp('Press any key to continue:')
+%         pause
+    end
+    
+    for i=1:n
+        energy1(i)=ss(i).E;
+    end
+    time1(k)=sum(ww);
+    consum(k)=n*E0-sum(energy1);
+    k=k+1;
+end
+
+close all
+plot([1 2 4 6 8],consum,'*r:')
+xlabel('sink number')
+ylabel('energy consumption (j)')
+grid on
+
+figure
+plot([1 2 4 6 8],time1,'*b:')
+xlabel('sink number')
+ylabel('average delay (sec)')
+grid on
+% clc
+% 
+% energytotal=sum(energy1);
+% fprintf('The total of energy for %g sink is %g\n',h1,energytotal)
+% fprintf('The total of time for %g sink is %g\n',h1,sum(ww))
